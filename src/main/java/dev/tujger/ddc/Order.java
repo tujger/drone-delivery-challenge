@@ -8,6 +8,8 @@ class Order {
     private String id;
     private String coordinate;
     private Date timestamp;
+    private Date startedTime;
+    private Date deliveredTime;
     private int distance;
     private Feedback feedback;
 
@@ -43,57 +45,17 @@ class Order {
         return distance;
     }
 
-    private Date limitWith(int hour) {
-        Date limit = new Date(getTimestamp().getTime());
-        limit.setHours(hour);
-        limit.setMinutes(0);
-        limit.setSeconds(0);
-        return limit;
-    }
-
-    public Date leftPositive() {
-        Date desired = TimeController.add(getTimestamp(), 0);
-        Date limit = limitWith(6);
-        if(desired.before(limit)) desired = limit;
-        return desired;
-    }
-
-    public Date leftNeutral() {
-        Date desired = TimeController.add(getTimestamp(), 0);
-        Date limit = limitWith(6);
-        if(desired.before(limit)) desired = limit;
-        return desired;
-    }
-
-    public Date rightPositive() {
-        Date desired = TimeController.add(getTimestamp(), 120);
-        Date limit = limitWith(22);
-        if(desired.after(limit)) desired = limit;
-        return desired;
-    }
-
-    public Date rightNeutral() {
-        Date desired = TimeController.add(getTimestamp(), 240);
-        Date limit = limitWith(22);
-        if(desired.after(limit)) desired = limit;
-        return desired;
-    }
-
-    public Feedback delivered(Date timestamp) {
-        if(timestamp.before(rightPositive()) && timestamp.after(leftPositive())) {
-            feedback = Feedback.Positive;
-        } else if(timestamp.before(rightNeutral()) && timestamp.after(leftNeutral())) {
-            feedback = Feedback.Neutral;
-        } else {
-            feedback = Feedback.Negative;
-        }
-        return feedback;
+    public void started(Date timestamp) {
+        setStartedTime(timestamp);
     }
 
     @Override
     public String toString() {
-        return String.format("Order %s, required time %d m\t\t%s <<%s <%s> %s>> %s", getId(), getDistance() * 2, TimeController.formatTimestamp(leftNeutral()), TimeController.formatTimestamp(leftPositive()), TimeController.formatTimestamp(getTimestamp()), TimeController.formatTimestamp(rightPositive()), TimeController.formatTimestamp(rightNeutral()))
-                + (feedback == null ? "" : ", delivered with " + feedback);
+        return String.format("%s, required time %d m\t\t%s", getId(), getDistance() * 2,  DeliveryController.formatTimestamp(getTimestamp()))
+                       + (getStartedTime() == null ? "" : String.format(", started at %s",
+                DeliveryController.formatTimestamp(getStartedTime())))
+                       + (getFeedback() == null ? "" : String.format(", delivered at %s with %s",
+                DeliveryController.formatTimestamp(getDeliveredTime()), getFeedback()));
     }
 
     public String getId() {
@@ -126,5 +88,29 @@ class Order {
 
     public void setDistance(int distance) {
         this.distance = distance;
+    }
+
+    public Feedback getFeedback() {
+        return feedback;
+    }
+
+    public void setFeedback(Feedback feedback) {
+        this.feedback = feedback;
+    }
+
+    public Date getStartedTime() {
+        return startedTime;
+    }
+
+    public void setStartedTime(Date startedTime) {
+        this.startedTime = startedTime;
+    }
+
+    public Date getDeliveredTime() {
+        return deliveredTime;
+    }
+
+    public void setDeliveredTime(Date deliveredTime) {
+        this.deliveredTime = deliveredTime;
     }
 }
