@@ -3,29 +3,29 @@ package dev.tujger.ddc;
 import java.io.File;
 import java.io.FileWriter;
 
+@SuppressWarnings("WeakerAccess")
 class DroneDeliveryChallenge {
-    private DeliveryController deliveryController;
+    private OrdersController ordersController;
     private Orders orders;
     private String outputFileName;
 
     public void start() throws Exception {
-
-        deliveryController.setOrders(orders);
-        deliveryController.estimateRequiredTimes();
-        deliveryController.perform();
+        getOrdersController().setOrders(getOrders());
+        getOrdersController().estimateRequiredTimes();
+        getOrdersController().perform();
 
         System.out.println("\nSummary:");
         System.out.println("====================================================================");
         File file = new File(getOutputFileName());
-        file.getParentFile().mkdirs();
+        boolean directoryCreated = file.getParentFile().mkdirs();
         try (FileWriter writer = new FileWriter(getOutputFileName())) {
-            for(Order order: deliveryController.getOrderedList()) {
+            for (Order order : getOrdersController().getOrderedList()) {
                 System.out.println(order);
-                writer.write(String.format("%s %s\n", order.getId(), DeliveryController.formatTimestamp(order.getDepartureTime())));
+                writer.write(String.format("%s %s\n", order.getId(), OrdersController.formatTime(order.getDepartureTime())));
             }
-            Orders notDelivered = new OrdersFromFile(orders);
-            notDelivered.removeAll(deliveryController.getOrderedList());
-            if(!notDelivered.isEmpty()) {
+            Orders notDelivered = new OrdersFromFile(getOrders());
+            notDelivered.removeAll(getOrdersController().getOrderedList());
+            if (!notDelivered.isEmpty()) {
                 System.out.println("\nOrders not delivered, Detract:");
                 System.out.println("====================================================================");
                 for (Order order : notDelivered) {
@@ -33,9 +33,10 @@ class DroneDeliveryChallenge {
                 }
             }
             System.out.println("\n====================================================================");
-            System.out.println(String.format("NPS: %d", deliveryController.fetchNPS()));
-            writer.write(String.format("NPS %s\n", deliveryController.fetchNPS()));
+            System.out.println(String.format("NPS: %d", getOrdersController().fetchNPS()));
+            writer.write(String.format("NPS %s\n", getOrdersController().fetchNPS()));
         }
+        if(directoryCreated) System.out.println(String.format("Directory created: %s", file.getParentFile().getCanonicalPath()));
         System.out.println(String.format("Output file name: %s", file.getCanonicalPath()));
     }
 
@@ -47,12 +48,12 @@ class DroneDeliveryChallenge {
         this.outputFileName = outputFileName;
     }
 
-    public DeliveryController getDeliveryController() {
-        return deliveryController;
+    public OrdersController getOrdersController() {
+        return ordersController;
     }
 
-    public void setDeliveryController(DeliveryController deliveryController) {
-        this.deliveryController = deliveryController;
+    public void setOrdersController(OrdersController ordersController) {
+        this.ordersController = ordersController;
     }
 
     public Orders getOrders() {

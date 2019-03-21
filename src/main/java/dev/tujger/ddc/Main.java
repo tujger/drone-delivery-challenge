@@ -9,8 +9,13 @@ public class Main {
             DroneDeliveryChallenge ddc = new DroneDeliveryChallenge();
             ddc.setOrders(new OrdersFromFile(inputFileName));
             ddc.setOutputFileName(outputFileName);
-//            ddc.setDeliveryController(new DeliveryControllerLiveList());
-            ddc.setDeliveryController(new DeliveryControllerPredefinedList());
+
+            /*
+             * Uncomment the desired approach,
+             *
+             */
+//            ddc.setOrdersController(new OrdersControllerLiveList());
+            ddc.setOrdersController(new OrdersControllerPredefinedList());
             ddc.start();
         } catch(IndexOutOfBoundsException e) {
             System.out.println("Required input and output file names as an arguments.");

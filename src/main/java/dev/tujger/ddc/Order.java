@@ -4,6 +4,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+@SuppressWarnings({"WeakerAccess", "deprecation"})
 class Order {
     private String id;
     private String coordinate;
@@ -22,7 +23,11 @@ class Order {
 
         setId(tokens[0]);
         setCoordinate(tokens[1]);
-        setTimestamp(parseDate(tokens[2]));
+
+        Date timestamp = parseDate(tokens[2]);
+        // reinitialize timestamp to dismiss milliseconds effect
+        timestamp = new Date(timestamp.getYear(), timestamp.getMonth(), timestamp.getDate(), timestamp.getHours(), timestamp.getMinutes(), timestamp.getSeconds());
+        setTimestamp(timestamp);
         setDistance(parseDistance(getCoordinate()));
     }
 
@@ -47,11 +52,11 @@ class Order {
 
     @Override
     public String toString() {
-        return String.format("%s, coordinate %s,\tdistance %3d\t\t%s", getId(), getCoordinate(), getDistance() * 2,  DeliveryController.formatTimestamp(getTimestamp()))
+        return String.format("%s, coordinate %s,\tdistance %3d\t\t%s", getId(), getCoordinate(), getDistance(),  OrdersController.formatTime(getTimestamp()))
                        + (getDepartureTime() == null ? "" : String.format(", start at %s",
-                DeliveryController.formatTimestamp(getDepartureTime())))
+                OrdersController.formatTime(getDepartureTime())))
                        + (getFeedback() == null ? "" : String.format(", delivery at %s, %s",
-                DeliveryController.formatTimestamp(getCompletionTime()), getFeedback()));
+                OrdersController.formatTime(getCompletionTime()), getFeedback()));
     }
 
     public String getId() {

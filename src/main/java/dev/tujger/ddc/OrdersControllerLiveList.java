@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
 
-public class DeliveryControllerLiveList extends DeliveryController {
+public class OrdersControllerLiveList extends OrdersController {
 
     @Override
     public Order fetchNextOrder(Date timestamp) {
@@ -46,7 +46,7 @@ public class DeliveryControllerLiveList extends DeliveryController {
         return null;
     }
 
-    Comparator<Order> sortSimultaneous = (o1, o2) -> {
+    private Comparator<Order> sortSimultaneous = (o1, o2) -> {
         if (o1.getDistance() < o2.getDistance()) return -1;
         else if (o1.getDistance() > o2.getDistance()) return 1;
         else if (o1.getTimestamp().before(o2.getTimestamp())) return -1;
@@ -56,8 +56,8 @@ public class DeliveryControllerLiveList extends DeliveryController {
 
     @Override
     public Date leftPositive(Order order) {
-        Date desired = DeliveryController.modifyTime(order.getTimestamp(), 0);
-        Date limit = DeliveryController.startOfDay();
+        Date desired = OrdersController.modifyTime(order.getTimestamp(), 0);
+        Date limit = OrdersController.startOfDay();
         if(desired.before(limit)) desired = limit;
         return desired;
     }
@@ -69,24 +69,24 @@ public class DeliveryControllerLiveList extends DeliveryController {
 
     @Override
     public Date rightPositive(Order order) {
-        Date desired = DeliveryController.modifyTime(order.getTimestamp(), 120 * 60);
-        Date limit = DeliveryController.endOfDay();
+        Date desired = OrdersController.modifyTime(order.getTimestamp(), 120 * 60);
+        Date limit = OrdersController.endOfDay();
         if(desired.after(limit)) desired = limit;
         return desired;
     }
 
     @Override
     public Date rightNeutral(Order order) {
-        Date desired = DeliveryController.modifyTime(order.getTimestamp(), 240 * 60);
-        Date limit = DeliveryController.endOfDay();
+        Date desired = OrdersController.modifyTime(order.getTimestamp(), 240 * 60);
+        Date limit = OrdersController.endOfDay();
         if(desired.after(limit)) desired = limit;
         return desired;
     }
 
     @Override
     public Date optimalDepartureTime(Date currentTimestamp, Order order) {
-        Date desired = DeliveryController.modifyTime(order.getTimestamp(), 0);
-        Date limit = DeliveryController.endOfDay();
+        Date desired = OrdersController.modifyTime(order.getTimestamp(), 0);
+        Date limit = OrdersController.endOfDay();
         if(desired.after(limit)) desired = limit;
         if(desired.before(currentTimestamp)) desired = currentTimestamp;
         return desired;

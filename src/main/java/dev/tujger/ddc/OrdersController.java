@@ -4,7 +4,8 @@ import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-abstract public class DeliveryController {
+@SuppressWarnings({"WeakerAccess", "deprecation"})
+abstract public class OrdersController {
 
     private Orders orders;
     private Set<Order> orderedList = new LinkedHashSet<>();
@@ -22,7 +23,7 @@ abstract public class DeliveryController {
                 totalRequiredTime % 60));
     }
 
-    public static String formatTimestamp(Date date) {
+    public static String formatTime(Date date) {
         return String.format("%02d:%02d:%02d", date.getHours(), date.getMinutes(), date.getSeconds());
     }
 
@@ -42,14 +43,16 @@ abstract public class DeliveryController {
             return;
         }
         Date timestamp = startOfDay();
-        System.out.println(String.format("\nStarting delivery at %s", DeliveryController.formatTimestamp(timestamp)));
+
+        System.out.println(String.format("\nStarting delivery at %s", OrdersController.formatTime(timestamp)));
         System.out.println("====================================================================");
+
         while(timestamp.before(endOfDay())) {
             Order order = fetchNextOrder(timestamp);
             if(order == null) {
                 System.out.println(String.format("No orders at %s, skipping 15 minutes",
-                        DeliveryController.formatTimestamp(timestamp)));
-                timestamp = DeliveryController.modifyTime(timestamp, 15 * 60);
+                        OrdersController.formatTime(timestamp)));
+                timestamp = OrdersController.modifyTime(timestamp, 15 * 60);
                 try {
                     getOrders().update();
                 } catch (Exception e) {
@@ -67,19 +70,19 @@ abstract public class DeliveryController {
                         interval % 60));
                 timestamp = newTimestamp;
             }
-            System.out.println(String.format("Order %s, order time %s, positive window %s-%s, neutral window %s-%s, distance %d",
-                    order.getId(),
-                    DeliveryController.formatTimestamp(order.getTimestamp()),
-                    DeliveryController.formatTimestamp(leftPositive(order)),
-                    DeliveryController.formatTimestamp(rightPositive(order)),
-                    DeliveryController.formatTimestamp(leftNeutral(order)),
-                    DeliveryController.formatTimestamp(rightNeutral(order)),
-                    order.getDistance()));
+            System.out.println(String.format("Order %s, coordinates %s, distance %d", order.getId(), order.getCoordinate(), order.getDistance()));
+            System.out.println(String.format("- order time\t\t%s", OrdersController.formatTime(order.getTimestamp())));
+            System.out.println(String.format("- positive window\t%s-%s",
+                    OrdersController.formatTime(leftPositive(order)),
+                    OrdersController.formatTime(rightPositive(order))));
+            System.out.println(String.format("- neutral window\t%s-%s",
+                    OrdersController.formatTime(leftNeutral(order)),
+                    OrdersController.formatTime(rightNeutral(order))));
             order.setDepartureTime(timestamp);
             System.out.println(String.format("- departed at\t\t%s",
-                    DeliveryController.formatTimestamp(timestamp)));
+                    OrdersController.formatTime(timestamp)));
 
-            timestamp = DeliveryController.modifyTime(timestamp, order.getDistance() * 60);
+            timestamp = OrdersController.modifyTime(timestamp, order.getDistance() * 60);
             order.setCompletionTime(timestamp);
 
             if(timestamp.before(rightPositive(order)) && timestamp.after(leftPositive(order))) {
@@ -91,18 +94,19 @@ abstract public class DeliveryController {
             }
 
             System.out.println(String.format("- delivered at\t\t%s, %s",
-                    DeliveryController.formatTimestamp(timestamp),
+                    OrdersController.formatTime(timestamp),
                     order.getFeedback()));
-            timestamp = DeliveryController.modifyTime(timestamp, order.getDistance() * 60);
+            timestamp = OrdersController.modifyTime(timestamp, order.getDistance() * 60);
             System.out.println(String.format("- returned at\t\t%s",
-                    DeliveryController.formatTimestamp(timestamp)));
+                    OrdersController.formatTime(timestamp)));
+
             getOrderedList().add(order);
         }
     }
 
-
     public static Date startOfDay() {
         Date timestamp = new Date();
+        // reinitialize timestamp to dismiss milliseconds effect
         timestamp = new Date(timestamp.getYear(), timestamp.getMonth(), timestamp.getDate(), 6, 0, 0);
         return timestamp;
     }
