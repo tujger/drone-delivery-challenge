@@ -35,7 +35,7 @@ Let's say we have two cases (they seem to me not a spherical cow):
 
 - Orders are all in the list, so drone can start earlier than the order timestamp to deliver the order at a time.
 - When drone returns to base it takes the next order or wait for time allowed to next delivery.
-- The simplest strategy here - it takes N (maximum is restricted by `IN_ADVANCE_MAX`) closest not completed potentially positive orders and iterates over all possible queues to find the one with maximum NPS.
+- The simplest strategy here - it takes N (maximum is restricted by `IN_ADVANCE_MAX`) closest not completed potentially positive orders and iterates over all possible queues to find the one with maximum NPS. _(Of course, it is extremely nonoptimal way and can be improved.)_
 - It takes (shifts) iteratively the first order from the queue while queue is longer than `IN_ADVANCE_RECALCULATE`, then it refreshes the queue.
 - The optimal queue is selecting based on coefficient similar to NPS over orders checked. This coefficient is updated with fees:
     - decrease fee if order completed in neutral window,
@@ -47,12 +47,3 @@ Let's say we have two cases (they seem to me not a spherical cow):
    
 To get the best result it's need to build a grid of possible values of all entities listed above and test all cases to find the optimal values.  
 
-
-
-
-Text 3 `code 1`:
-
-    code 2
-    code 3
-
-Text 4
