@@ -9,40 +9,66 @@ public class OrdersControllerLiveList extends OrdersController {
     @Override
     public Order fetchNextOrder(Date timestamp) {
         ArrayList<Order> simultaneous = new ArrayList<>();
+
+        /*
+         * First of all, try to increase NPS, look for orders on time
+         */
         for(Order order: getOrders()) {
             if(order.getFeedback() == null
-                       && (timestamp.after(leftPositive(order)) || timestamp.equals(leftPositive(order)))
-                       && (timestamp.before(rightPositive(order)) || timestamp.equals(rightPositive(order)))) {
+                       && (timestamp.after(order.getTimestamp()) || timestamp.equals(order.getTimestamp()))
+                       && (timestamp.before(positiveCompletion(order)) || timestamp.equals(positiveCompletion(order)))) {
                 simultaneous.add(order);
             }
         }
-        if(simultaneous.size() > 0) {
-            simultaneous.sort(sortSimultaneous);
-            return simultaneous.get(0);
+
+        /*
+         * Second, try to deliver neutral orders
+         */
+        if(simultaneous.isEmpty()) {
+            for (Order order : getOrders()) {
+                if (order.getFeedback() == null
+                            && (timestamp.after(order.getTimestamp()) || timestamp.equals(order.getTimestamp()))
+                            && (timestamp.before(neutralCompletion(order)) || timestamp.equals(neutralCompletion(order)))) {
+                    simultaneous.add(order);
+                }
+            }
         }
 
-        for(Order order: getOrders()) {
-            if(order.getFeedback() == null
-                       && (timestamp.after(leftNeutral(order)) || timestamp.equals(leftNeutral(order)))
-                       && (timestamp.before(rightNeutral(order)) || timestamp.equals(rightNeutral(order)))) {
-                simultaneous.add(order);
+        /*
+         * Third, try to deliver first not delivered neutral order in queue, without sorting
+         */
+        if(simultaneous.isEmpty()) {
+            for (Order order : getOrders()) {
+                if (order.getFeedback() == null
+                            && (timestamp.before(neutralCompletion(order)) || timestamp.equals(neutralCompletion(order)))) {
+                    simultaneous.add(order);
+                    break;
+                }
             }
-        }
-        if(simultaneous.size() > 0) {
-            simultaneous.sort(sortSimultaneous);
-            return simultaneous.get(0);
         }
 
-        for(Order order: getOrders()) {
-            if(order.getFeedback() == null && timestamp.before(rightNeutral(order))) {
-                return order;
+        /*
+         * Finally, deliver expired orders
+         */
+        if(simultaneous.isEmpty()) {
+            for (Order order : getOrders()) {
+                if (order.getFeedback() == null) {
+                    simultaneous.add(order);
+                }
             }
         }
-        for(Order order: getOrders()) {
-            if(order.getFeedback() == null) {
-                return order;
-            }
+
+        simultaneous.sort(sortSimultaneous);
+
+        while(simultaneous.size() > 0) {
+            Order order = simultaneous.remove(0);
+            /*
+             * Check if drone will return to base within work hours.
+             */
+            if(Utils.modifyTime(timestamp, order.getDistance() * 120).after(endOfDay())) continue;
+            return order;
         }
+
         return null;
     }
 
@@ -55,38 +81,9 @@ public class OrdersControllerLiveList extends OrdersController {
     };
 
     @Override
-    public Date leftPositive(Order order) {
-        Date desired = OrdersController.modifyTime(order.getTimestamp(), 0);
-        Date limit = OrdersController.startOfDay();
-        if(desired.before(limit)) desired = limit;
-        return desired;
-    }
-
-    @Override
-    public Date leftNeutral(Order order) {
-        return leftPositive(order);
-    }
-
-    @Override
-    public Date rightPositive(Order order) {
-        Date desired = OrdersController.modifyTime(order.getTimestamp(), 120 * 60);
-        Date limit = OrdersController.endOfDay();
-        if(desired.after(limit)) desired = limit;
-        return desired;
-    }
-
-    @Override
-    public Date rightNeutral(Order order) {
-        Date desired = OrdersController.modifyTime(order.getTimestamp(), 240 * 60);
-        Date limit = OrdersController.endOfDay();
-        if(desired.after(limit)) desired = limit;
-        return desired;
-    }
-
-    @Override
     public Date optimalDepartureTime(Date currentTimestamp, Order order) {
-        Date desired = OrdersController.modifyTime(order.getTimestamp(), 0);
-        Date limit = OrdersController.endOfDay();
+        Date desired = Utils.modifyTime(order.getTimestamp(), 0);
+        Date limit = endOfDay();
         if(desired.after(limit)) desired = limit;
         if(desired.before(currentTimestamp)) desired = currentTimestamp;
         return desired;

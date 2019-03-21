@@ -1,6 +1,6 @@
 # Title
 
-##1. Subtitle 1
+## 1. Subtitle 1
 
 Text.
 
@@ -9,7 +9,7 @@ Text.
 3. Calculate 
 
 
-##2. Task given
+## 2. [Task given](#task-given)
 
 The task is not fully clear, for example, the questions are:
 
@@ -36,7 +36,7 @@ Let's say we have two cases (they seem to me not a spherical cow):
 - Orders are all in the list, so drone can start earlier than the order timestamp to deliver the order at a time.
 - When drone returns to base it takes the next order or wait for time allowed to next delivery.
 - The simplest strategy here - it takes N (maximum is restricted by `IN_ADVANCE_MAX`) closest not completed potentially positive orders and iterates over all possible queues to find the one with maximum NPS.
-- It takes (shifts) iteratively the first order in queue while queue size is longer than `IN_ADVANCE_RECALCULATE`, then it refreshes the queue.
+- It takes (shifts) iteratively the first order from the queue while queue is longer than `IN_ADVANCE_RECALCULATE`, then it refreshes the queue.
 - The optimal queue is selecting based on coefficient similar to NPS over orders checked. This coefficient is updated with fees:
     - decrease fee if order completed in neutral window,
     - decrease fee twice if order completed in positive window,
@@ -44,8 +44,8 @@ Let's say we have two cases (they seem to me not a spherical cow):
     - increase fee twice if order completed of neutral window,
     - increase fee using distance,
     - some other fee can be added.
-     
-Of course, we can implement other strategies, even using Machine Learning in final case. By the way, ML can be applied to find the optimal values for all entities listed above.  
+   
+To get the best result it's need to build a grid of possible values of all entities listed above and test all cases to find the optimal values.  
 
 
 

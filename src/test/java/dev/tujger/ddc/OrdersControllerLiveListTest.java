@@ -37,27 +37,7 @@ public class OrdersControllerLiveListTest {
     }
 
     @Test
-    public void leftPositive() {
-        assertEquals("07:10:10", OrdersController.formatTime(deliveryController.leftPositive(order)));
-    }
-
-    @Test
-    public void leftNeutral() {
-        assertEquals("07:10:10", OrdersController.formatTime(deliveryController.leftNeutral(order)));
-    }
-
-    @Test
-    public void rightPositive() {
-        assertEquals("09:10:10", OrdersController.formatTime(deliveryController.rightPositive(order)));
-    }
-
-    @Test
-    public void rightNeutral() {
-        assertEquals("11:10:10", OrdersController.formatTime(deliveryController.rightNeutral(order)));
-    }
-
-    @Test
     public void optimalDepartureTime() {
-        assertEquals("07:30:00", OrdersController.formatTime(deliveryController.optimalDepartureTime(date, order)));
+        assertEquals("07:30:00", Utils.formatTime(deliveryController.optimalDepartureTime(date, order)));
     }
 }

@@ -24,92 +24,96 @@ public class OrdersControllerPredefinedList extends OrdersControllerLiveList {
 
     @Override
     public Order fetchNextOrder(final Date timestamp) {
-        if(optimalQueue.size() > IN_ADVANCE_RECALCULATE) {
-            return optimalQueue.remove(0);
-        }
-        ArrayList<Order> ordersQueue = new ArrayList<>();
-        for(Order order: getOrders()) {
-            if(order.getFeedback() == null && ordersQueue.size() < IN_ADVANCE_MAX) {
-                Date optimalDepartureTime = optimalDepartureTime(timestamp, order);
-                Date lastNeutralTime = rightNeutral(order);
-                if(timestamp.after(optimalDepartureTime) || timestamp.equals(optimalDepartureTime)) {
-                    ordersQueue.add(order);
-                } else if(timestamp.before(lastNeutralTime) || timestamp.equals(lastNeutralTime)) {
-                    ordersQueue.add(order);
-                }
-            }
-        }
-        List<Integer> initialQueue = new ArrayList<>();
-        for(int i = 0; i < ordersQueue.size(); i++) {
-            initialQueue.add(i);
-        }
-        count = 0;
-        maxCount = calculateFactorial(initialQueue.size());
-        optimalNPS = -1e15F;
-        optimalQueue.clear();
-        permute(initialQueue, 0, queue -> {
-            if(count++ % 100 == 0) System.out.print(String.format("\rPermutation %d/%.0f: %s", count, maxCount, Arrays.toString(queue.toArray())));
-
-            float positive = 0F;
-            float negative = 0F;
-
-            Date currentTime = new Date(timestamp.getTime());
-            for(int i: queue) {
-                Order order = ordersQueue.get(i);
-                Date newTimestamp = optimalDepartureTime(currentTime, order);
-                if (newTimestamp.after(currentTime)) {
-                    currentTime = newTimestamp;
-                }
-                currentTime = OrdersController.modifyTime(currentTime, order.getDistance() * 60);
-                if(FEE_LATE) {
-                    if (currentTime.before(rightPositive(order)) && currentTime.after(leftPositive(order))) {
-                        positive++;
-                        positive++;
-                    } else if (currentTime.before(rightNeutral(order)) && currentTime.after(leftNeutral(order))) {
-                        positive++;
-                    } else {
-                        negative++;
-                        negative++;
+        if(optimalQueue.size() <= IN_ADVANCE_RECALCULATE) {
+            ArrayList<Order> ordersQueue = new ArrayList<>();
+            for (Order order : getOrders()) {
+                if (order.getFeedback() == null && ordersQueue.size() < IN_ADVANCE_MAX) {
+                    Date optimalDepartureTime = optimalDepartureTime(timestamp, order);
+                    Date lastNeutralTime = neutralCompletion(order);
+                    if (timestamp.after(optimalDepartureTime) || timestamp.equals(optimalDepartureTime)) {
+                        ordersQueue.add(order);
+                    } else if (timestamp.before(lastNeutralTime) || timestamp.equals(lastNeutralTime)) {
+                        ordersQueue.add(order);
                     }
                 }
-                if(FEE_COMPARING) {
-                    float fee = (currentTime.getTime() - order.getTimestamp().getTime()) / 1000F;
-                    if(fee > 240) fee = fee / 60 / 60 * 2;
-                    else if(fee > 120) fee = fee / 60 / 60;
-                    else fee = fee / 60 / 60 / 2;
-                    negative += fee;
-                }
-                if(FEE_DISTANCE) negative += order.getDistance()/60F;
+            }
+            List<Integer> initialQueue = new ArrayList<>();
+            for (int i = 0; i < ordersQueue.size(); i++) {
+                initialQueue.add(i);
+            }
+            count = 0;
+            maxCount = calculateFactorial(initialQueue.size());
+            optimalNPS = -1e15F;
+            optimalQueue.clear();
 
-                currentTime = OrdersController.modifyTime(currentTime, order.getDistance() * 60);
-            }
-            float promoters = 1F * positive / ordersQueue.size();
-            float detractors = 1F * negative / ordersQueue.size();
-            float nps = (promoters - detractors) * 100F;
-            if(nps > optimalNPS) {
-                optimalNPS = nps;
-                optimalQueue.clear();
-                for(int i: queue) {
-                    optimalQueue.add(ordersQueue.get(i));
+            /*
+             * Iterate over all permutations of queue, calculate NPS on each step trying to find the highest.
+             * This highest will be the optimal queue of selected orders.
+             */
+            permute(initialQueue, 0, queue -> {
+                if (count++ % 100 == 0)
+                    Utils.print(String.format("\rPermutation %d/%.0f: %s", count, maxCount, Arrays.toString(queue.toArray())));
+
+                float positive = 0F;
+                float negative = 0F;
+
+                Date currentTime = new Date(timestamp.getTime());
+                for (int i : queue) {
+                    Order order = ordersQueue.get(i);
+                    Date newTimestamp = optimalDepartureTime(currentTime, order);
+                    if (newTimestamp.after(currentTime)) {
+                        currentTime = newTimestamp;
+                    }
+                    currentTime = Utils.modifyTime(currentTime, order.getDistance() * 60);
+                    if (FEE_LATE) {
+                        if (currentTime.before(positiveCompletion(order))) {
+                            positive++;
+                            positive++;
+                        } else if (currentTime.before(neutralCompletion(order))) {
+                            positive++;
+                        } else {
+                            negative++;
+                            negative++;
+                        }
+                    }
+                    if (FEE_COMPARING) {
+                        float fee = (currentTime.getTime() - order.getTimestamp().getTime()) / 1000F;
+                        if (fee > 240) fee = fee / 60 / 60 * 2;
+                        else if (fee > 120) fee = fee / 60 / 60;
+                        else fee = fee / 60 / 60 / 2;
+                        negative += fee;
+                    }
+                    if (FEE_DISTANCE) negative += order.getDistance() / 60F;
+
+                    currentTime = Utils.modifyTime(currentTime, order.getDistance() * 60);
                 }
-            }
-        });
-        System.out.print("\r");
-        if(optimalQueue.size() > 0) return optimalQueue.remove(0);
+                float promoters = 1F * positive / ordersQueue.size();
+                float detractors = 1F * negative / ordersQueue.size();
+                float nps = (promoters - detractors) * 100F;
+                if (nps > optimalNPS) {
+                    optimalNPS = nps;
+                    optimalQueue.clear();
+                    for (int i : queue) {
+                        optimalQueue.add(ordersQueue.get(i));
+                    }
+                }
+            });
+            Utils.print("\r");
+        }
+        while(optimalQueue.size() > 0) {
+            Order order = optimalQueue.remove(0);
+            /*
+             * Check if drone will return to base within work hours.
+             */
+            if(Utils.modifyTime(timestamp, order.getDistance() * 60).after(endOfDay())) continue;
+            return order;
+        }
         return null;
     }
 
     @Override
-    public Date leftPositive(Order order) {
-        Date desired = OrdersController.modifyTime(order.getTimestamp(), -order.getDistance() * 60);
-        Date limit = OrdersController.startOfDay();
-        if(desired.before(limit)) desired = limit;
-        return desired;
-    }
-
-    @Override
     public Date optimalDepartureTime(Date currentTimestamp, Order order) {
-        Date desired = OrdersController.modifyTime(order.getTimestamp(), -order.getDistance() * 60);
+        Date desired = Utils.modifyTime(order.getTimestamp(), - order.getDistance() * 60);
         Date limit = OrdersController.endOfDay();
         if(desired.after(limit)) desired = limit;
         if(desired.before(currentTimestamp)) desired = currentTimestamp;

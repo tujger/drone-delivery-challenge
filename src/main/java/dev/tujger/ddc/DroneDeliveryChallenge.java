@@ -14,30 +14,28 @@ class DroneDeliveryChallenge {
         getOrdersController().estimateRequiredTimes();
         getOrdersController().perform();
 
-        System.out.println("\nSummary:");
-        System.out.println("====================================================================");
+        Utils.println("\nSummary:", 1);
         File file = new File(getOutputFileName());
         boolean directoryCreated = file.getParentFile().mkdirs();
         try (FileWriter writer = new FileWriter(getOutputFileName())) {
             for (Order order : getOrdersController().getOrderedList()) {
-                System.out.println(order);
-                writer.write(String.format("%s %s\n", order.getId(), OrdersController.formatTime(order.getDepartureTime())));
+                Utils.println(order.toString());
+                writer.write(String.format("%s %s\n", order.getId(), Utils.formatTime(order.getDepartureTime())));
             }
             Orders notDelivered = new OrdersFromFile(getOrders());
             notDelivered.removeAll(getOrdersController().getOrderedList());
             if (!notDelivered.isEmpty()) {
-                System.out.println("\nOrders not delivered, Detract:");
-                System.out.println("====================================================================");
+                Utils.println("\nOrders not delivered, Detract:", 1);
                 for (Order order : notDelivered) {
-                    System.out.println(order);
+                    Utils.println(order.toString());
                 }
             }
-            System.out.println("\n====================================================================");
-            System.out.println(String.format("NPS: %d", getOrdersController().fetchNPS()));
+            Utils.println("", 1);
+            Utils.println(String.format("NPS: %d", getOrdersController().fetchNPS()));
             writer.write(String.format("NPS %s\n", getOrdersController().fetchNPS()));
         }
-        if(directoryCreated) System.out.println(String.format("Directory created: %s", file.getParentFile().getCanonicalPath()));
-        System.out.println(String.format("Output file name: %s", file.getCanonicalPath()));
+        if(directoryCreated) Utils.println(String.format("Directory created: %s", file.getParentFile().getCanonicalPath()));
+        System.out.println(String.format("Output file: %s", file.getCanonicalPath()));
     }
 
     public String getOutputFileName() {

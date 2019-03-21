@@ -35,8 +35,7 @@ public class OrdersFromFile extends ArrayList<Order> implements Orders {
             return;
         }
         if(size() == 0) {
-            System.out.println("\t\t\t ID\t\t\t\t\tCoordinate\t\tDistance\tStart");
-            System.out.println("====================================================================");
+            Utils.println("\t\t\t ID\t\t\t\t\tCoordinate\t\tDistance\tStart", 1);
         }
         try (BufferedReader br = new BufferedReader(new FileReader(inputFile))) {
             String inputLine;
@@ -46,7 +45,7 @@ public class OrdersFromFile extends ArrayList<Order> implements Orders {
                     if(!ordersIds.contains(order.getId())) {
                         add(order);
                         ordersIds.add(order.getId());
-                        System.out.println(String.format("Order added: %s", order));
+                        Utils.println(String.format("Order added: %s", order));
                     }
                 } catch (ParseException | ArrayIndexOutOfBoundsException e) {
                     System.err.println(String.format("Error parsing line: %s", inputLine));

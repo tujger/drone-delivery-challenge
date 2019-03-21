@@ -10,10 +10,6 @@ public class Main {
             ddc.setOrders(new OrdersFromFile(inputFileName));
             ddc.setOutputFileName(outputFileName);
 
-            /*
-             * Uncomment the desired approach,
-             *
-             */
 //            ddc.setOrdersController(new OrdersControllerLiveList());
             ddc.setOrdersController(new OrdersControllerPredefinedList());
             ddc.start();

@@ -19,23 +19,17 @@ class Order {
     private SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
 
     public Order(String inputLine) throws ParseException {
-        String[] tokens = inputLine.split(" ");
-
+        String[] tokens = inputLine.split("\\s+");
         setId(tokens[0]);
         setCoordinate(tokens[1]);
-
-        Date timestamp = parseDate(tokens[2]);
-        // reinitialize timestamp to dismiss milliseconds effect
-        timestamp = new Date(timestamp.getYear(), timestamp.getMonth(), timestamp.getDate(), timestamp.getHours(), timestamp.getMinutes(), timestamp.getSeconds());
-        setTimestamp(timestamp);
         setDistance(parseDistance(getCoordinate()));
+        setTimestamp(parseDate(tokens[2]));
     }
 
     private Date parseDate(String token) throws ParseException {
         Date timestamp = dateFormat.parse(token);
-        timestamp.setYear(currentDate.getYear());
-        timestamp.setMonth(currentDate.getMonth());
-        timestamp.setDate(currentDate.getDate());
+        // reinitialize timestamp to dismiss milliseconds effect
+        timestamp = new Date(currentDate.getYear(), currentDate.getMonth(), currentDate.getDate(), timestamp.getHours(), timestamp.getMinutes(), timestamp.getSeconds());
         return timestamp;
     }
 
@@ -52,11 +46,10 @@ class Order {
 
     @Override
     public String toString() {
-        return String.format("%s, coordinate %s,\tdistance %3d\t\t%s", getId(), getCoordinate(), getDistance(),  OrdersController.formatTime(getTimestamp()))
-                       + (getDepartureTime() == null ? "" : String.format(", start at %s",
-                OrdersController.formatTime(getDepartureTime())))
-                       + (getFeedback() == null ? "" : String.format(", delivery at %s, %s",
-                OrdersController.formatTime(getCompletionTime()), getFeedback()));
+        return String.format("%s, coordinate %s,\tdistance %3d\t\t%s",
+                getId(), getCoordinate(), getDistance(),  Utils.formatTime(getTimestamp()))
+                       + (getDepartureTime() == null ? "" : String.format(", departed at %s", Utils.formatTime(getDepartureTime())))
+                       + (getFeedback() == null ? "" : String.format(", completed at %s, %s", Utils.formatTime(getCompletionTime()), getFeedback()));
     }
 
     public String getId() {

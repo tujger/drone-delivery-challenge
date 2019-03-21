@@ -15,6 +15,7 @@ public class OrdersControllerTest {
     private final String inputFileName = "./src/main/resources/input-test1.txt";
     private OrdersFromFile orders;
     private OrdersControllerLiveList deliveryController;
+    private Order order;
 
     @Before
     public void setUp() throws Exception {
@@ -22,6 +23,10 @@ public class OrdersControllerTest {
         orders.update();
         deliveryController = new OrdersControllerLiveList();
         deliveryController.setOrders(orders);
+
+        Date date = new Date();
+        date = new Date(date.getYear(), date.getMonth(), date.getDate(), 7, 30,0);
+        order = deliveryController.fetchNextOrder(date);
     }
 
     @Test
@@ -36,17 +41,6 @@ public class OrdersControllerTest {
         assertEquals(-100, deliveryController.fetchNPS());
         deliveryController.perform();
         assertTrue(deliveryController.fetchNPS() > 0);
-    }
-
-    @Test
-    public void formatTime() {
-        assertEquals("22:13:01", OrdersController.formatTime(new Date(2019,3,21,22,13,1)));
-    }
-
-    @Test
-    public void modifyTime() {
-        Date date = new Date(2019,3,21,22,14,1);
-        assertEquals(date, OrdersController.modifyTime(new Date(2019,3,21,22,13,1), 60));
     }
 
     @Test
@@ -80,4 +74,13 @@ public class OrdersControllerTest {
         assertEquals(new LinkedHashSet<>(), deliveryController.getOrderedList());
     }
 
+    @Test
+    public void positiveCompletion() {
+        assertEquals("09:10:10", Utils.formatTime(deliveryController.positiveCompletion(order)));
+    }
+
+    @Test
+    public void neutralCompletion() {
+        assertEquals("11:10:10", Utils.formatTime(deliveryController.neutralCompletion(order)));
+    }
 }
