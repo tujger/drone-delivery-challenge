@@ -5,9 +5,12 @@ public class Main {
         try {
             String inputFileName = args[0];
             String outputFileName = args[1];
+
             DroneDeliveryChallenge ddc = new DroneDeliveryChallenge();
-            ddc.setInputFileName(inputFileName);
+            ddc.setOrders(new OrdersFromFile(inputFileName));
             ddc.setOutputFileName(outputFileName);
+//            ddc.setDeliveryController(new DeliveryControllerLiveList());
+            ddc.setDeliveryController(new DeliveryControllerPredefinedList());
             ddc.start();
         } catch(IndexOutOfBoundsException e) {
             System.out.println("Required input and output file names as an arguments.");

@@ -13,8 +13,19 @@ public class OrdersFromFile extends ArrayList<Order> implements Orders {
     private List<String> ordersIds;
     private String source;
 
-    public OrdersFromFile() {
+    public OrdersFromFile(String source) throws IOException {
         ordersIds = new ArrayList<>();
+        setSource(source);
+        File inputFile = new File(source);
+        System.out.println(String.format("Input file: %s", inputFile.getCanonicalPath()));
+    }
+
+    public OrdersFromFile(Orders orders) {
+        super(orders);
+        ordersIds = new ArrayList<>();
+        for(Order order:orders) {
+            ordersIds.add(order.getId());
+        }
     }
 
     public void update() throws IOException {
@@ -24,8 +35,8 @@ public class OrdersFromFile extends ArrayList<Order> implements Orders {
             return;
         }
         if(size() == 0) {
-            System.out.println("\t\t\t ID\t\t\t\t\t   Distance Start");
-            System.out.println("====================================================");
+            System.out.println("\t\t\t ID\t\t\t\t\tCoordinate\t\tDistance\tStart");
+            System.out.println("====================================================================");
         }
         try (BufferedReader br = new BufferedReader(new FileReader(inputFile))) {
             String inputLine;
@@ -48,14 +59,12 @@ public class OrdersFromFile extends ArrayList<Order> implements Orders {
     @Override
     public Order nextAvailable(Date timestamp) {
         for(Order order: this) {
-            if(order.getStartedTime() != null) continue;
-            if(order.getDeliveredTime() != null) continue;
+            if(order.getDepartureTime() != null) continue;
+            if(order.getCompletionTime() != null) continue;
             return order;
         }
         return null;
     }
-
-
 
     public void setSource(String source) {
         this.source = source;

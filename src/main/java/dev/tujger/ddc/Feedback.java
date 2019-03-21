@@ -1,7 +1,7 @@
 package dev.tujger.ddc;
 
 public enum Feedback {
-    Positive,
-    Negative,
+    Promote,
+    Detract,
     Neutral
 }

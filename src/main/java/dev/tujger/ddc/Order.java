@@ -8,8 +8,8 @@ class Order {
     private String id;
     private String coordinate;
     private Date timestamp;
-    private Date startedTime;
-    private Date deliveredTime;
+    private Date departureTime;
+    private Date completionTime;
     private int distance;
     private Feedback feedback;
 
@@ -45,17 +45,13 @@ class Order {
         return distance;
     }
 
-    public void started(Date timestamp) {
-        setStartedTime(timestamp);
-    }
-
     @Override
     public String toString() {
-        return String.format("%s, required time %d m\t\t%s", getId(), getDistance() * 2,  DeliveryController.formatTimestamp(getTimestamp()))
-                       + (getStartedTime() == null ? "" : String.format(", started at %s",
-                DeliveryController.formatTimestamp(getStartedTime())))
-                       + (getFeedback() == null ? "" : String.format(", delivered at %s with %s",
-                DeliveryController.formatTimestamp(getDeliveredTime()), getFeedback()));
+        return String.format("%s, coordinate %s,\tdistance %3d\t\t%s", getId(), getCoordinate(), getDistance() * 2,  DeliveryController.formatTimestamp(getTimestamp()))
+                       + (getDepartureTime() == null ? "" : String.format(", start at %s",
+                DeliveryController.formatTimestamp(getDepartureTime())))
+                       + (getFeedback() == null ? "" : String.format(", delivery at %s, %s",
+                DeliveryController.formatTimestamp(getCompletionTime()), getFeedback()));
     }
 
     public String getId() {
@@ -98,19 +94,19 @@ class Order {
         this.feedback = feedback;
     }
 
-    public Date getStartedTime() {
-        return startedTime;
+    public Date getDepartureTime() {
+        return departureTime;
     }
 
-    public void setStartedTime(Date startedTime) {
-        this.startedTime = startedTime;
+    public void setDepartureTime(Date departureTime) {
+        this.departureTime = departureTime;
     }
 
-    public Date getDeliveredTime() {
-        return deliveredTime;
+    public Date getCompletionTime() {
+        return completionTime;
     }
 
-    public void setDeliveredTime(Date deliveredTime) {
-        this.deliveredTime = deliveredTime;
+    public void setCompletionTime(Date completionTime) {
+        this.completionTime = completionTime;
     }
 }

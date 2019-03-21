@@ -29,13 +29,17 @@ Let's say we have two cases (they seem to me not a spherical cow):
   - 2+ available orders, drone starts delivery in order given.
 - Order of 2+ available orders is sorting the following way:
   - less distance has higher priority,
+  - potential promoters have higher priority, neutral feedback has less one,
   - if order already expired (delayed more than 4 hours) then we can postpone it more because it is already has negative feedback.
 
 ##### Predefined list
 
 - Orders are all in the list, so drone can start earlier than the order timestamp to deliver the order at a time.
 - When drone returns to base it takes the next order or wait for time allowed to next delivery.
-- The simplest strategy here - is iterate over all possible queues to find the one with maximum NPS. Of course, we can implement other strategies (even using AI in final case).
+- The simplest strategy here - it takes N (maximum 8) closest not completed orders and iterates over all possible queues to find the one with maximum NPS.
+- The better queue is selecting based on coefficient similar to NPS over orders checked, and it is modified with regularization which checks the difference between desired and final delivery time, the distance, and so on. I guess, this regularization can be tuned. 
+
+Of course, we can implement other strategies (even using AI in final case).
 
 
 
