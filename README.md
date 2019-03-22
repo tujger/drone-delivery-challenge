@@ -65,7 +65,8 @@ or (Windows):
     
 Then look at the output folder and run:
 
-    java dev.tujger.ddc.Main input.txt
+    java -cp ./out/production/classes dev.tujger.ddc.Main ./src/main/resources/input.txt
 
+Fix paths if it is necessary.
 
     

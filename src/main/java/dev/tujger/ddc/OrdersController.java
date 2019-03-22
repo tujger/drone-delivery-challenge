@@ -7,7 +7,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-@SuppressWarnings({"WeakerAccess", "deprecation"})
+@SuppressWarnings({"WeakerAccess"})
 abstract public class OrdersController {
 
     private Orders orders;
@@ -41,7 +41,6 @@ abstract public class OrdersController {
         while(timestamp.isBefore(endOfDay())) {
             Order order = fetchNextOrder(timestamp);
             if(order == null) {
-                Utils.print(String.format("No valid orders at %s, skipping minute", timestamp.format(formatter)));
                 timestamp = timestamp.plus(1, ChronoUnit.MINUTES);
                 if (timestamp.getMinute() % 15 == 0) {
                     try {

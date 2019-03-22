@@ -2,13 +2,12 @@ package dev.tujger.ddc;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.text.ParseException;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.zip.DataFormatException;
 
 @SuppressWarnings("WeakerAccess")
 public class OrdersFromFile extends ArrayList<Order> implements Orders {
@@ -33,8 +32,7 @@ public class OrdersFromFile extends ArrayList<Order> implements Orders {
     public void update() throws IOException {
         File inputFile = new File(getSource());
         if(!inputFile.exists()) {
-            System.err.println(String.format("File %s not found.", inputFile.getAbsolutePath()));
-            return;
+            throw new FileNotFoundException(String.format("File %s not found.", inputFile.getAbsolutePath()));
         }
         if(size() == 0) {
             Utils.println("\t\t\t ID\t\t\t\t\tCoordinate\t\tDistance\tStart", 1);

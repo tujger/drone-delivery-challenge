@@ -2,11 +2,6 @@ package dev.tujger.ddc;
 
 import org.junit.Test;
 
-import java.util.Date;
-
-import static org.junit.Assert.*;
-
-@SuppressWarnings("deprecation")
 public class UtilsTest {
 
     @Test

@@ -6,12 +6,12 @@ import org.junit.Test;
 import java.io.IOException;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
 import java.util.LinkedHashSet;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
-@SuppressWarnings({"deprecation", "FieldCanBeLocal"})
+@SuppressWarnings({"FieldCanBeLocal"})
 public class OrdersControllerTest {
 
     private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
@@ -47,7 +47,6 @@ public class OrdersControllerTest {
 
     @Test
     public void fetchNextOrder() {
-        Date now = new Date();
         assertEquals("WM0002", deliveryController.fetchNextOrder(LocalTime.of(6,30,0)).getId());
         assertEquals("WM0008", deliveryController.fetchNextOrder(LocalTime.of(12,0,0)).getId());
     }

@@ -1,5 +1,7 @@
 package dev.tujger.ddc;
 
+import java.io.FileNotFoundException;
+
 public class Main {
     public static void main(String[] args) {
         try {
@@ -17,6 +19,8 @@ public class Main {
             ddc.start();
         } catch(IndexOutOfBoundsException e) {
             System.out.println("Required input and output file names as an arguments.");
+        } catch (FileNotFoundException e) {
+            System.err.println(e.getMessage());
         } catch (Exception e) {
             System.out.println(String.format("Error found: %s", e.getMessage()));
             e.printStackTrace();

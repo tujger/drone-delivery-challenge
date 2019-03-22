@@ -4,7 +4,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.time.LocalTime;
-import java.util.Date;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -14,7 +13,7 @@ public class OrderTest {
     private Order order;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         String line = "WM0003 N7E50 05:31:50";
         order = new Order(line);
     }
@@ -41,7 +40,6 @@ public class OrderTest {
         assertEquals("W20S20", order.getCoordinate());
     }
 
-    @SuppressWarnings("deprecation")
     @Test
     public void getTimestamp() {
         assertEquals(5, order.getTimestamp().getHour());

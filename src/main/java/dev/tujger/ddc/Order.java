@@ -1,13 +1,10 @@
 package dev.tujger.ddc;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.Date;
 
-@SuppressWarnings({"WeakerAccess", "deprecation"})
+@SuppressWarnings({"WeakerAccess"})
 class Order {
 
     private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");

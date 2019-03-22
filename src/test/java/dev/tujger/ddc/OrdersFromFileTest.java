@@ -40,10 +40,6 @@ public class OrdersFromFileTest {
         assertEquals("UM0020", order.getId());
         assertEquals(13, order.getDistance());
 
-        orders.setSource(inputFileName1 + "-not-exists");
-        orders.update();
-
-        assertEquals(24, orders.size());
     }
 
     @Test

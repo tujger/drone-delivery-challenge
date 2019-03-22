@@ -1,8 +1,6 @@
 package dev.tujger.ddc;
 
-import java.util.Date;
-
-@SuppressWarnings({"WeakerAccess", "deprecation"})
+@SuppressWarnings({"WeakerAccess"})
 public class Utils {
 
     private static final Boolean SHOW_LOG = true;

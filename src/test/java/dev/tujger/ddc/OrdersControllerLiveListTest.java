@@ -5,11 +5,10 @@ import org.junit.Test;
 
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
-@SuppressWarnings({"deprecation", "FieldCanBeLocal"})
+@SuppressWarnings({"FieldCanBeLocal"})
 public class OrdersControllerLiveListTest {
 
     private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
@@ -19,7 +18,6 @@ public class OrdersControllerLiveListTest {
     private OrdersControllerLiveList deliveryController;
     private LocalTime time;
     private Order order;
-
 
     @Before
     public void setUp() throws Exception {
