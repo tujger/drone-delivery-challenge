@@ -4,11 +4,13 @@ public class Main {
     public static void main(String[] args) {
         try {
             String inputFileName = args[0];
-            String outputFileName = args[1];
 
             DroneDeliveryChallenge ddc = new DroneDeliveryChallenge();
             ddc.setOrders(new OrdersFromFile(inputFileName));
-            ddc.setOutputFileName(outputFileName);
+            if(args.length > 1) {
+                String outputFileName = args[1];
+                ddc.setOutputFileName(outputFileName);
+            }
 
 //            ddc.setOrdersController(new OrdersControllerLiveList());
             ddc.setOrdersController(new OrdersControllerPredefinedList());

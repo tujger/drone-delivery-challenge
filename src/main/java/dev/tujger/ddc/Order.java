@@ -2,35 +2,30 @@ package dev.tujger.ddc;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Date;
 
 @SuppressWarnings({"WeakerAccess", "deprecation"})
 class Order {
+
+    private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
+
     private String id;
     private String coordinate;
-    private Date timestamp;
-    private Date departureTime;
-    private Date completionTime;
+    private LocalTime timestamp;
+    private LocalTime departureTime;
+    private LocalTime completionTime;
     private int distance;
     private Feedback feedback;
 
-    private Date currentDate = new Date();
-
-    private SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
-
-    public Order(String inputLine) throws ParseException {
+    public Order(String inputLine) throws DateTimeParseException {
         String[] tokens = inputLine.split("\\s+");
         setId(tokens[0]);
         setCoordinate(tokens[1]);
         setDistance(parseDistance(getCoordinate()));
-        setTimestamp(parseDate(tokens[2]));
-    }
-
-    private Date parseDate(String token) throws ParseException {
-        Date timestamp = dateFormat.parse(token);
-        // reinitialize timestamp to dismiss milliseconds effect
-        timestamp = new Date(currentDate.getYear(), currentDate.getMonth(), currentDate.getDate(), timestamp.getHours(), timestamp.getMinutes(), timestamp.getSeconds());
-        return timestamp;
+        setTimestamp(LocalTime.parse(tokens[2]));
     }
 
     private int parseDistance(String coordinate) {
@@ -47,9 +42,9 @@ class Order {
     @Override
     public String toString() {
         return String.format("%s, coordinate %s,\tdistance %3d\t\t%s",
-                getId(), getCoordinate(), getDistance(),  Utils.formatTime(getTimestamp()))
-                       + (getDepartureTime() == null ? "" : String.format(", departed at %s", Utils.formatTime(getDepartureTime())))
-                       + (getFeedback() == null ? "" : String.format(", completed at %s, %s", Utils.formatTime(getCompletionTime()), getFeedback()));
+                getId(), getCoordinate(), getDistance(), getTimestamp().format(formatter))
+                       + (getDepartureTime() == null ? "" : String.format(", departed at %s", getDepartureTime().format(formatter)))
+                       + (getFeedback() == null ? "" : String.format(", completed at %s, %s", getCompletionTime().format(formatter), getFeedback()));
     }
 
     public String getId() {
@@ -68,11 +63,11 @@ class Order {
         this.coordinate = coordinate;
     }
 
-    public Date getTimestamp() {
+    public LocalTime getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(Date timestamp) {
+    public void setTimestamp(LocalTime timestamp) {
         this.timestamp = timestamp;
     }
 
@@ -92,19 +87,19 @@ class Order {
         this.feedback = feedback;
     }
 
-    public Date getDepartureTime() {
+    public LocalTime getDepartureTime() {
         return departureTime;
     }
 
-    public void setDepartureTime(Date departureTime) {
+    public void setDepartureTime(LocalTime departureTime) {
         this.departureTime = departureTime;
     }
 
-    public Date getCompletionTime() {
+    public LocalTime getCompletionTime() {
         return completionTime;
     }
 
-    public void setCompletionTime(Date completionTime) {
+    public void setCompletionTime(LocalTime completionTime) {
         this.completionTime = completionTime;
     }
 }

@@ -1,6 +1,9 @@
 package dev.tujger.ddc;
 
-import java.util.Date;
+import java.time.Duration;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -10,19 +13,19 @@ abstract public class OrdersController {
     private Orders orders;
     private Set<Order> orderedList = new LinkedHashSet<>();
 
+    private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
+
     public void estimateRequiredTimes() throws Exception {
         getOrders().update();
-        int totalRequiredTime = 0;
+        LocalTime totalRequiredTime = LocalTime.of(0,0,0);
         for(Order order: getOrders()) {
-            int requiredTime = order.getDistance() * 2;
-            totalRequiredTime += requiredTime;
+            totalRequiredTime = totalRequiredTime.plus(order.getDistance() * 2, ChronoUnit.MINUTES);
         }
-        Utils.println(String.format("Total time required: %02.0f:%02d:00",
-                Math.floor(totalRequiredTime / 60.),
-                totalRequiredTime % 60), -1);
+        Utils.println(String.format("Total time required: %s",
+                totalRequiredTime.format(formatter)));
     }
 
-    abstract public Order fetchNextOrder(Date timestamp);
+    abstract public Order fetchNextOrder(LocalTime timestamp);
 
     public void perform() {
         try {
@@ -31,31 +34,29 @@ abstract public class OrdersController {
             e.printStackTrace();
             return;
         }
-        Date timestamp = startOfDay();
+        LocalTime timestamp = startOfDay();
 
-        Utils.println(String.format("\nStarting delivery at %s", Utils.formatTime(timestamp)), 1);
+        Utils.println(String.format("\nStarting delivery at %s", timestamp.format(formatter)), 1);
 
-        while(timestamp.before(endOfDay())) {
+        while(timestamp.isBefore(endOfDay())) {
             Order order = fetchNextOrder(timestamp);
             if(order == null) {
-                Utils.println(String.format("No valid orders at %s, skipping 15 minutes",
-                        Utils.formatTime(timestamp)));
-                timestamp = Utils.modifyTime(timestamp, 15 * 60);
-                try {
-                    getOrders().update();
-                } catch (Exception e) {
-                    e.printStackTrace();
+                Utils.print(String.format("No valid orders at %s, skipping minute", timestamp.format(formatter)));
+                timestamp = timestamp.plus(1, ChronoUnit.MINUTES);
+                if (timestamp.getMinute() % 15 == 0) {
+                    try {
+                        getOrders().update();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
                 continue;
             }
 
-            Date newTimestamp = optimalDepartureTime(timestamp, order);
-            if(newTimestamp.after(timestamp)) {
-                long interval = (newTimestamp.getTime() - timestamp.getTime())/1000;
-                Utils.println(String.format("Empty time, skipping %02d:%02d:%02d",
-                        interval / 60 / 60,
-                        (interval - interval / 60 / 60 * 60 * 60) / 60,
-                        interval % 60));
+            LocalTime newTimestamp = optimalDepartureTime(timestamp, order);
+            if(newTimestamp.isAfter(timestamp)) {
+                Duration duration = Duration.between(timestamp, newTimestamp);
+                Utils.println(String.format("Empty time, skipping %s minutes", duration.toMinutes()));
                 timestamp = newTimestamp;
             }
             Utils.println(String.format("Order %s, coordinates %s, distance %d\n" +
@@ -64,45 +65,37 @@ abstract public class OrdersController {
                                                 "- neutral before\t%s\n" +
                                                 "- departed at\t\t%s",
                     order.getId(), order.getCoordinate(), order.getDistance(),
-                    Utils.formatTime(order.getTimestamp()),
-                    Utils.formatTime(positiveCompletion(order)),
-                    Utils.formatTime(neutralCompletion(order)),
-                    Utils.formatTime(timestamp)));
+                    order.getTimestamp().format(formatter),
+                    positiveCompletion(order).format(formatter),
+                    neutralCompletion(order).format(formatter),
+                    timestamp.format(formatter)));
             order.setDepartureTime(timestamp);
 
-            timestamp = Utils.modifyTime(timestamp, order.getDistance() * 60);
+            timestamp = timestamp.plus(order.getDistance(), ChronoUnit.MINUTES);
             order.setCompletionTime(timestamp);
 
-            if(timestamp.before(positiveCompletion(order))) {
+            if(timestamp.isBefore(positiveCompletion(order))) {
                 order.setFeedback(Feedback.Promote);
-            } else if(timestamp.before(neutralCompletion(order))) {
+            } else if(timestamp.isBefore(neutralCompletion(order))) {
                 order.setFeedback(Feedback.Neutral);
             } else {
                 order.setFeedback(Feedback.Detract);
             }
 
-            Utils.println(String.format("- delivered at\t\t%s, %s",
-                    Utils.formatTime(timestamp),
-                    order.getFeedback()));
-            timestamp = Utils.modifyTime(timestamp, order.getDistance() * 60);
-            Utils.println(String.format("- returned at\t\t%s",
-                    Utils.formatTime(timestamp)));
+            Utils.println(String.format("- delivered at\t\t%s, %s", timestamp.format(formatter), order.getFeedback()));
+            timestamp = timestamp.plus(order.getDistance(), ChronoUnit.MINUTES);
+            Utils.println(String.format("- returned at\t\t%s", timestamp.format(formatter)));
 
             getOrderedList().add(order);
         }
     }
 
-    public static Date startOfDay() {
-        Date timestamp = new Date();
-        // reinitialize timestamp to dismiss milliseconds effect
-        timestamp = new Date(timestamp.getYear(), timestamp.getMonth(), timestamp.getDate(), 6, 0, 0);
-        return timestamp;
+    public static LocalTime startOfDay() {
+        return LocalTime.of(6,0,0);
     }
 
-    public static Date endOfDay() {
-        Date timestamp = new Date(startOfDay().getTime());
-        timestamp.setHours(22);
-        return timestamp;
+    public static LocalTime endOfDay() {
+        return LocalTime.of(22,0,0);
     }
 
     public void setOrders(Orders orders) {
@@ -134,19 +127,19 @@ abstract public class OrdersController {
         return orderedList;
     }
 
-    public Date positiveCompletion(Order order) {
-        Date desired = Utils.modifyTime(order.getTimestamp(), 120 * 60);
-        Date limit = endOfDay();
-        if(desired.after(limit)) desired = limit;
+    public LocalTime positiveCompletion(Order order) {
+        LocalTime desired = order.getTimestamp().plus(120, ChronoUnit.MINUTES);
+        LocalTime limit = endOfDay();
+        if(desired.isAfter(limit)) desired = limit;
         return desired;
     }
 
-    public Date neutralCompletion(Order order) {
-        Date desired = Utils.modifyTime(order.getTimestamp(), 240 * 60);
-        Date limit = endOfDay();
-        if(desired.after(limit)) desired = limit;
+    public LocalTime neutralCompletion(Order order) {
+        LocalTime desired = order.getTimestamp().plus(240, ChronoUnit.MINUTES);
+        LocalTime limit = endOfDay();
+        if(desired.isAfter(limit)) desired = limit;
         return desired;
     }
 
-    public abstract Date optimalDepartureTime(Date currentTimestamp, Order order);
+    public abstract LocalTime optimalDepartureTime(LocalTime currentTimestamp, Order order);
 }

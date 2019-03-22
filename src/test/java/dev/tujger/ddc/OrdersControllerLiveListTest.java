@@ -3,6 +3,8 @@ package dev.tujger.ddc;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 import static org.junit.Assert.*;
@@ -10,10 +12,12 @@ import static org.junit.Assert.*;
 @SuppressWarnings({"deprecation", "FieldCanBeLocal"})
 public class OrdersControllerLiveListTest {
 
+    private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
+
     private final String inputFileName = "./src/main/resources/input-test1.txt";
     private OrdersFromFile orders;
     private OrdersControllerLiveList deliveryController;
-    private Date date;
+    private LocalTime time;
     private Order order;
 
 
@@ -24,20 +28,19 @@ public class OrdersControllerLiveListTest {
         deliveryController = new OrdersControllerLiveList();
         deliveryController.setOrders(orders);
 
-        date = new Date();
-        date = new Date(date.getYear(), date.getMonth(), date.getDate(), 7, 30,0);
+        time = LocalTime.of(7,30,0);
 
-        order = deliveryController.fetchNextOrder(date);
+        order = deliveryController.fetchNextOrder(time);
     }
 
     @Test
     public void fetchNextOrder() {
-        Order order = deliveryController.fetchNextOrder(date);
+        Order order = deliveryController.fetchNextOrder(time);
         assertEquals("WM0005", order.getId());
     }
 
     @Test
     public void optimalDepartureTime() {
-        assertEquals("07:30:00", Utils.formatTime(deliveryController.optimalDepartureTime(date, order)));
+        assertEquals("07:30:00", deliveryController.optimalDepartureTime(time, order).format(formatter));
     }
 }

@@ -3,6 +3,7 @@ package dev.tujger.ddc;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.time.LocalTime;
 import java.util.Date;
 
 import static org.junit.Assert.assertEquals;
@@ -43,14 +44,14 @@ public class OrderTest {
     @SuppressWarnings("deprecation")
     @Test
     public void getTimestamp() {
-        assertEquals(5, order.getTimestamp().getHours());
-        assertEquals(31, order.getTimestamp().getMinutes());
-        assertEquals(50, order.getTimestamp().getSeconds());
+        assertEquals(5, order.getTimestamp().getHour());
+        assertEquals(31, order.getTimestamp().getMinute());
+        assertEquals(50, order.getTimestamp().getSecond());
     }
 
     @Test
     public void setTimestamp() {
-        Date timestamp = new Date();
+        LocalTime timestamp = LocalTime.of(13,45,10);
         order.setTimestamp(timestamp);
         assertEquals(timestamp, order.getTimestamp());  }
 
@@ -84,7 +85,7 @@ public class OrderTest {
 
     @Test
     public void setDepartureTime() {
-        Date timestamp = new Date();
+        LocalTime timestamp = LocalTime.of(11,11,11);
         order.setDepartureTime(timestamp);
         assertEquals(timestamp, order.getDepartureTime());
     }
@@ -96,14 +97,14 @@ public class OrderTest {
 
     @Test
     public void setCompletionTime() {
-        Date timestamp = new Date();
+        LocalTime timestamp = LocalTime.of(22,22,22);
         order.setCompletionTime(timestamp);
         assertEquals(timestamp, order.getCompletionTime());   }
 
     @Test
     public void toStringTest() {
-        order.setDepartureTime(new Date());
-        order.setCompletionTime(new Date());
+        order.setDepartureTime(LocalTime.of(10,11,12));
+        order.setCompletionTime(LocalTime.of(13,14,15));
         order.setFeedback(Feedback.Promote);
         System.out.println(order);
     }

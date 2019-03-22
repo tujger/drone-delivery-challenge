@@ -1,11 +1,17 @@
 package dev.tujger.ddc;
 
+import java.time.Duration;
+import java.time.LocalTime;
+import java.time.temporal.ChronoField;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalField;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.function.Consumer;
+
+import javax.sound.midi.Soundbank;
 
 @SuppressWarnings("WeakerAccess")
 public class OrdersControllerPredefinedList extends OrdersControllerLiveList {
@@ -23,16 +29,16 @@ public class OrdersControllerPredefinedList extends OrdersControllerLiveList {
     private double maxCount;
 
     @Override
-    public Order fetchNextOrder(final Date timestamp) {
+    public Order fetchNextOrder(final LocalTime timestamp) {
         if(optimalQueue.size() <= IN_ADVANCE_RECALCULATE) {
             ArrayList<Order> ordersQueue = new ArrayList<>();
             for (Order order : getOrders()) {
                 if (order.getFeedback() == null && ordersQueue.size() < IN_ADVANCE_MAX) {
-                    Date optimalDepartureTime = optimalDepartureTime(timestamp, order);
-                    Date lastNeutralTime = neutralCompletion(order);
-                    if (timestamp.after(optimalDepartureTime) || timestamp.equals(optimalDepartureTime)) {
+                    LocalTime optimalDepartureTime = optimalDepartureTime(timestamp, order);
+                    LocalTime lastNeutralTime = neutralCompletion(order);
+                    if (timestamp.isAfter(optimalDepartureTime) || timestamp.equals(optimalDepartureTime)) {
                         ordersQueue.add(order);
-                    } else if (timestamp.before(lastNeutralTime) || timestamp.equals(lastNeutralTime)) {
+                    } else if (timestamp.isBefore(lastNeutralTime) || timestamp.equals(lastNeutralTime)) {
                         ordersQueue.add(order);
                     }
                 }
@@ -45,7 +51,6 @@ public class OrdersControllerPredefinedList extends OrdersControllerLiveList {
             maxCount = calculateFactorial(initialQueue.size());
             optimalNPS = -1e15F;
             optimalQueue.clear();
-
             /*
              * Iterate over all permutations of queue, calculate NPS on each step trying to find the highest.
              * This highest will be the optimal queue of selected orders.
@@ -57,19 +62,19 @@ public class OrdersControllerPredefinedList extends OrdersControllerLiveList {
                 float positive = 0F;
                 float negative = 0F;
 
-                Date currentTime = new Date(timestamp.getTime());
+                LocalTime currentTime = LocalTime.from(timestamp);
                 for (int i : queue) {
                     Order order = ordersQueue.get(i);
-                    Date newTimestamp = optimalDepartureTime(currentTime, order);
-                    if (newTimestamp.after(currentTime)) {
+                    LocalTime newTimestamp = optimalDepartureTime(currentTime, order);
+                    if (newTimestamp.isAfter(currentTime)) {
                         currentTime = newTimestamp;
                     }
-                    currentTime = Utils.modifyTime(currentTime, order.getDistance() * 60);
+                    currentTime = currentTime.plus(order.getDistance(), ChronoUnit.MINUTES);
                     if (FEE_LATE) {
-                        if (currentTime.before(positiveCompletion(order))) {
+                        if (currentTime.isBefore(positiveCompletion(order))) {
                             positive++;
                             positive++;
-                        } else if (currentTime.before(neutralCompletion(order))) {
+                        } else if (currentTime.isBefore(neutralCompletion(order))) {
                             positive++;
                         } else {
                             negative++;
@@ -77,15 +82,15 @@ public class OrdersControllerPredefinedList extends OrdersControllerLiveList {
                         }
                     }
                     if (FEE_COMPARING) {
-                        float fee = (currentTime.getTime() - order.getTimestamp().getTime()) / 1000F;
-                        if (fee > 240) fee = fee / 60 / 60 * 2;
-                        else if (fee > 120) fee = fee / 60 / 60;
+                        float fee = Duration.between(currentTime, order.getTimestamp()).getSeconds() * 1F;
+                        if (fee > 240 * 60) fee = fee / 60 / 60 * 2;
+                        else if (fee > 120 * 60) fee = fee / 60 / 60;
                         else fee = fee / 60 / 60 / 2;
                         negative += fee;
                     }
                     if (FEE_DISTANCE) negative += order.getDistance() / 60F;
 
-                    currentTime = Utils.modifyTime(currentTime, order.getDistance() * 60);
+                    currentTime = currentTime.plus(order.getDistance(), ChronoUnit.MINUTES);
                 }
                 float promoters = 1F * positive / ordersQueue.size();
                 float detractors = 1F * negative / ordersQueue.size();
@@ -100,23 +105,24 @@ public class OrdersControllerPredefinedList extends OrdersControllerLiveList {
             });
             Utils.print("\r");
         }
+
         while(optimalQueue.size() > 0) {
             Order order = optimalQueue.remove(0);
             /*
              * Check if drone will return to base within work hours.
              */
-            if(Utils.modifyTime(timestamp, order.getDistance() * 60).after(endOfDay())) continue;
+            if(timestamp.plus(order.getDistance(), ChronoUnit.MINUTES).isAfter(endOfDay())) continue;
             return order;
         }
         return null;
     }
 
     @Override
-    public Date optimalDepartureTime(Date currentTimestamp, Order order) {
-        Date desired = Utils.modifyTime(order.getTimestamp(), - order.getDistance() * 60);
-        Date limit = OrdersController.endOfDay();
-        if(desired.after(limit)) desired = limit;
-        if(desired.before(currentTimestamp)) desired = currentTimestamp;
+    public LocalTime optimalDepartureTime(LocalTime currentTimestamp, Order order) {
+        LocalTime desired = order.getTimestamp().minus(order.getDistance(), ChronoUnit.MINUTES);
+        LocalTime limit = OrdersController.endOfDay();
+        if(desired.isAfter(limit)) desired = limit;
+        if(desired.isBefore(currentTimestamp)) desired = currentTimestamp;
         return desired;
     }
 

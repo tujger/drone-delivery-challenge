@@ -4,6 +4,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.LinkedHashSet;
 
@@ -11,6 +13,8 @@ import static org.junit.Assert.*;
 
 @SuppressWarnings({"deprecation", "FieldCanBeLocal"})
 public class OrdersControllerTest {
+
+    private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
 
     private final String inputFileName = "./src/main/resources/input-test1.txt";
     private OrdersFromFile orders;
@@ -24,9 +28,7 @@ public class OrdersControllerTest {
         deliveryController = new OrdersControllerLiveList();
         deliveryController.setOrders(orders);
 
-        Date date = new Date();
-        date = new Date(date.getYear(), date.getMonth(), date.getDate(), 7, 30,0);
-        order = deliveryController.fetchNextOrder(date);
+        order = deliveryController.fetchNextOrder(LocalTime.of(7,30,0));
     }
 
     @Test
@@ -46,22 +48,20 @@ public class OrdersControllerTest {
     @Test
     public void fetchNextOrder() {
         Date now = new Date();
-        assertEquals("WM0002", deliveryController.fetchNextOrder(new Date(now.getYear(),now.getMonth(),now.getDate(),6,30,0)).getId());
-        assertEquals("WM0008", deliveryController.fetchNextOrder(new Date(now.getYear(),now.getMonth(),now.getDate(),12,0,0)).getId());
+        assertEquals("WM0002", deliveryController.fetchNextOrder(LocalTime.of(6,30,0)).getId());
+        assertEquals("WM0008", deliveryController.fetchNextOrder(LocalTime.of(12,0,0)).getId());
     }
 
     @Test
     public void startOfDay() {
-        Date date = new Date();
-        date = new Date(date.getYear(), date.getMonth(), date.getDate(), 6, 0,0);
-        assertEquals(date, OrdersController.startOfDay());
+        LocalTime time = LocalTime.of(6,0,0);
+        assertEquals(time, OrdersController.startOfDay());
     }
 
     @Test
     public void endOfDay() {
-        Date date = new Date();
-        date = new Date(date.getYear(), date.getMonth(), date.getDate(), 22, 0,0);
-        assertEquals(date, OrdersController.endOfDay());
+        LocalTime time = LocalTime.of(22,0,0);
+        assertEquals(time, OrdersController.endOfDay());
     }
 
     @Test
@@ -76,11 +76,11 @@ public class OrdersControllerTest {
 
     @Test
     public void positiveCompletion() {
-        assertEquals("09:10:10", Utils.formatTime(deliveryController.positiveCompletion(order)));
+        assertEquals("09:10:10", deliveryController.positiveCompletion(order).format(formatter));
     }
 
     @Test
     public void neutralCompletion() {
-        assertEquals("11:10:10", Utils.formatTime(deliveryController.neutralCompletion(order)));
+        assertEquals("11:10:10", deliveryController.neutralCompletion(order).format(formatter));
     }
 }

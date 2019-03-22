@@ -5,8 +5,10 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.text.ParseException;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.zip.DataFormatException;
 
 @SuppressWarnings("WeakerAccess")
 public class OrdersFromFile extends ArrayList<Order> implements Orders {
@@ -47,7 +49,7 @@ public class OrdersFromFile extends ArrayList<Order> implements Orders {
                         ordersIds.add(order.getId());
                         Utils.println(String.format("Order added: %s", order));
                     }
-                } catch (ParseException | ArrayIndexOutOfBoundsException e) {
+                } catch (DateTimeParseException | ArrayIndexOutOfBoundsException e) {
                     System.err.println(String.format("Error parsing line: %s", inputLine));
                     e.printStackTrace();
                 }

@@ -2,9 +2,13 @@ package dev.tujger.ddc;
 
 import java.io.File;
 import java.io.FileWriter;
+import java.time.format.DateTimeFormatter;
 
 @SuppressWarnings("WeakerAccess")
 class DroneDeliveryChallenge {
+
+    private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
+
     private OrdersController ordersController;
     private Orders orders;
     private String outputFileName;
@@ -14,13 +18,19 @@ class DroneDeliveryChallenge {
         getOrdersController().estimateRequiredTimes();
         getOrdersController().perform();
 
-        Utils.println("\nSummary:", 1);
+        Utils.println("\r                                                           ");
+        Utils.println("Summary:", 1);
+
+        if(getOutputFileName() == null) {
+            setOutputFileName(new File(".", "result.txt").getCanonicalPath());
+        }
+
         File file = new File(getOutputFileName());
         boolean directoryCreated = file.getParentFile().mkdirs();
         try (FileWriter writer = new FileWriter(getOutputFileName())) {
             for (Order order : getOrdersController().getOrderedList()) {
                 Utils.println(order.toString());
-                writer.write(String.format("%s %s\n", order.getId(), Utils.formatTime(order.getDepartureTime())));
+                writer.write(String.format("%s %s\n", order.getId(), order.getDepartureTime().format(formatter)));
             }
             Orders notDelivered = new OrdersFromFile(getOrders());
             notDelivered.removeAll(getOrdersController().getOrderedList());

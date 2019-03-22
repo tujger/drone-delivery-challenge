@@ -7,16 +7,6 @@ public class Utils {
 
     private static final Boolean SHOW_LOG = true;
 
-    public static String formatTime(Date date) {
-        return String.format("%02d:%02d:%02d", date.getHours(), date.getMinutes(), date.getSeconds());
-    }
-
-    public static Date modifyTime(Date date, int secondsToAdd) {
-        long time = date.getTime();
-        time += secondsToAdd * 1000;
-        return new Date(time);
-    }
-
     public static void print(String text) {
         if(!SHOW_LOG) return;
         System.out.print(text);
