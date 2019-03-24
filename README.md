@@ -25,7 +25,7 @@ Let's say we have two cases (they seem to me not a spherical cow in vacuum):
 
 - Orders are coming during the day, so drone starts not earlier than the order timestamp, and we definitely have a minimal latency due to distance.
 - When drone is returning to base there can be following:
-  - no available orders, drone waits and checks the queue with interval of 15 minutes,
+  - no available orders, drone waits and checks the queue every minute,
   - 1 available order, drone starts delivery,
   - 2+ available orders, drone starts delivery by calculated queue.
 - Queue of 2+ available orders is sorting the following way:
