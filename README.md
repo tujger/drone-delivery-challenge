@@ -7,7 +7,7 @@
 - Read input file, parse each row as an Order.
 - Start at 6am and request list of available orders, fulfill the first order, mark it as completed.
 - Repeat previous action continuously until 6pm.
-- If list of orders is empty then wait 15 minutes and try again.
+- If list of orders is empty then wait 1 minute and try again.
 
 Thus, the strategy of planning is responsibility of method which builds the queue of available orders.
 
